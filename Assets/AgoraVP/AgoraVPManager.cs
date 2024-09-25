@@ -3,24 +3,31 @@ using UnityEngine.Serialization;
 using System.Collections.Generic;
 using Agora.Rtc;
 using Agora.Rtc.Utils;
+using Agora.TEN.Client;
 
 namespace Agora_RTC_Plugin.API_Example
 {
     public class AgoraVPManager : MonoBehaviour
     {
         #region EDITOR INPUTS
-        [Header("_____________Basic Configuration_____________")]
-        [FormerlySerializedAs("APP_ID")]
-        [SerializeField]
+        //[Header("_____________Basic Configuration_____________")]
         protected string _appID = "";
 
-        [FormerlySerializedAs("TOKEN")]
-        [SerializeField]
         protected string _token = "";
 
-        [FormerlySerializedAs("CHANNEL_NAME")]
-        [SerializeField]
         protected string _channelName = "";
+
+        [SerializeField]
+        internal  TENConfigInput TENConfig;
+        [SerializeField]
+        internal IChatTextDisplay TextDisplay;
+        [SerializeField]
+        internal TENSessionManager TENSession;
+        [SerializeField]
+        internal SphereVisualizer Visualizer;
+        public int CHANNEL = 1;
+        public int SAMPLE_RATE = 44100;
+
 
         [SerializeField]
         internal GameObject ViewContainerPrefab;
@@ -54,14 +61,26 @@ namespace Agora_RTC_Plugin.API_Example
         private void OnDestroy()
         {
             Debug.Log("OnDestroy");
+            TENSession.StopSession();
+
             if (RtcEngine == null) return;  
             RtcEngine.InitEventHandler(null);
             RtcEngine.LeaveChannel();
             RtcEngine.Dispose();
         }
 
+        private void LoadAssetData()
+        {
+            AppConfig.Shared.SetValue(TENConfig);
+            //if (_appIdInput == null) return;
+            _appID = AppConfig.Shared.AppId;
+            _token = AppConfig.Shared.RtcToken;
+            _channelName = AppConfig.Shared.Channel;
+        }
+
         private bool CheckAppId()
         {
+            LoadAssetData();
             Debug.Assert(_appID.Length > 10, $"Please fill in your appId in {gameObject.name}");
             Debug.Log("Running platform is " + Application.platform);
             return _appID.Length > 10;
@@ -95,12 +114,19 @@ namespace Agora_RTC_Plugin.API_Example
             {
                 RtcEngine.SetParameters("che.audio.restartWhenInterrupted", true);
             }
+
+            RtcEngine.SetPlaybackAudioFrameBeforeMixingParameters(SAMPLE_RATE, CHANNEL);
+
+            RtcEngine.RegisterAudioFrameObserver(new AudioFrameObserver(this),
+                 AUDIO_FRAME_POSITION.AUDIO_FRAME_POSITION_BEFORE_MIXING,
+                OBSERVER_MODE.RAW_DATA);
         }
 
         #region -- Button Events ---
 
-        public virtual void JoinChannel()
+        public virtual async void JoinChannel()
         {
+            _token = await TENSession.GetToken();
             RtcEngine.JoinChannel(_token, _channelName);
         }
 
@@ -138,11 +164,13 @@ namespace Agora_RTC_Plugin.API_Example
                                     connection.channelId, connection.localUid, elapsed));
                 Vector3 pos = new Vector3(-2.5f, 0, 3.28f);
                 CreateUserView(0, connection.channelId, pos);
+                _app.TENSession.StartSession(connection.localUid);
             }
 
             public override void OnUserJoined(RtcConnection connection, uint uid, int elapsed)
             {
                 Debug.Log(string.Format("OnUserJoined uid: ${0} elapsed: ${1}", uid, elapsed));
+                if (uid == _app.TENConfig.AgentUid) return;
                 var count = _app.transform.childCount;
                 Vector3 pos = new Vector3(count * 1.5f, 0, 3.28f);
                 CreateUserView(uid, connection.channelId, pos);
@@ -172,6 +200,24 @@ namespace Agora_RTC_Plugin.API_Example
                 AgoraViewUtils.DestroyVideoView(uid);
             }
 
+        }
+
+        internal class AudioFrameObserver : IAudioFrameObserver
+        {
+            AgoraVPManager _app;
+            internal AudioFrameObserver(AgoraVPManager client)
+            {
+                _app = client;
+            }
+
+            public override bool OnPlaybackAudioFrameBeforeMixing(string channel_id,
+                                                            uint uid,
+                                                            AudioFrame audio_frame)
+            {
+                var floatArray = UtilFunctions.ConvertByteToFloat16(audio_frame.RawBuffer);
+                _app.Visualizer?.UpdateVisualizer(floatArray);
+                return false;
+            }
         }
     }
 }
