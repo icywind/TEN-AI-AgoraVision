@@ -1,56 +1,35 @@
-# Vision Pro Unity Quick Start with Agora SDK
+# TEN AI Agent on Apple Vision Pro
+This is the finished project that forked from the [HelloAgoraVision](https://github.com/AgoraIO-Community/HelloAgoraVision) and added support for Voice AI. It uses the TEN AI framework to utilize LLM service from OpenAI and Speech service from Azure. With the [TEN client plugin](https://github.com/AgoraIO-Community/TEN_AI_UnityPlugin), a developer can build from the original project to this version in as little as 15 minutes.
 
-## Sample Scene
+## Preparations
+1. Set up    [TEN Frameworks Agent](https://github.com/TEN-framework/TEN-Agent)
+2. Obtain credentials:
+-   Text to Speech Support  API Key from  [Azure Speech Service](https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/SpeechServices)
+    
+-   [API key from OpenAI](https://platform.openai.com/api-keys)
+- Agora project [App ID](https://console.agora.io/projects) 
+3. [Download](https://github.com/AgoraIO-Community/HelloAgoraVision/releases) the Unity SDK with visionPro support ([AgoraRTC-Plugin-VisionOS.unitypackage](https://github.com/AgoraIO-Community/HelloAgoraVision/releases/download/v4.2.6.6-preview/AgoraRTC-Plugin-VisionOS.unitypackage))
 
-### Simulator
-<img width="1048" alt="Screenshot simulator" src="https://github.com/icywind/HelloAgoraVision/assets/1261195/def63eca-ac8a-4655-a921-8099ce172895">
 
-### VisionPro device
-<img width="1048" alt="Screenshot simulator"  src="https://github.com/icywind/HelloAgoraVision/assets/1261195/916ea8b2-8e52-4489-a1f0-8e31025b2035">
-
-## Developer Environment Prerequisites
--   Mac computer with silicon CPU (M1 or above)    
--   XCode    
--   Apple Developer membership
--   Unity 2022.3 LTS  
--   Unity Developer license - Pro/Plus/Enterprise
--   Agora Developer account
--   Agora Video SDK that includes VisionOS plugin
 ## Quick Start
 
-This section shows you how to prepare, build, and run the sample application.
-
-### Obtain an App ID
-To build and run the sample application, get an App ID:
-
-1. Create a developer account at [agora.io](https://dashboard.agora.io/signin/). Once you finish the signup process, you will be redirected to the Dashboard.
-
-2. Navigate in Agora Console on the left to **Projects** > **More** > **Create** > **Create New Project**.
-
-3. Save the **App ID** from the Dashboard for later use.
-  
-### Project Description
-
-#### Create XCode Project
 1. Clone this repo and open the project from this folder
-2. Set up Unity environment for the VisionOS 
-3. Download the latest SDK, temporarily a preview in the Release section
-4. Open TestAgoraVP scene
-5. Fill in App ID and Channel Name.  
-![VP-agoramanager](https://github.com/icywind/HelloAgoraVision/assets/1261195/43b944ba-bd88-4d0e-8359-cb1d84fbcb92)
 
-6. Make sure if your AppID has token or not.  Things won't work if you don't supply a token if your AppID requires one.  We recommend use an AppID for testing first before applying token logic.
-7. Use [the Web Demo](https://webdemo.agora.io/basicVideoCall/index.html) as a second user to test the RTC call.
-8. Build the project.  For Simulator, make sure the Target SDK is set to "**Simulator SDK**"
-  ![vp-similatorSDK](https://github.com/icywind/HelloAgoraVision/assets/1261195/667b91a9-48f3-479c-b65b-ed50543891a8)
-9. (Temporarily) with the Preview SDK, remember remove the ARM64 folder from the Framework or you will get lots of duplicate symbol error message.![vp-remove-arm64](https://github.com/icywind/HelloAgoraVision/assets/1261195/9db941b4-b85c-4354-9ac4-c906a2d042f3)
-10. Build and Run the project; you should see the screen similar to the first screenshot of this README file
-11. Join the channel using the WebDemo and you should have enabled video chat between the two users
-12. If everything works well in the Simulator, you should have high confidence that the project works on the device.  Set the Target SDK to "**Device SDK**" on Unity Editor.
-![VP-devicebuild](https://github.com/icywind/HelloAgoraVision/assets/1261195/bbc1e63c-8461-4b6a-b6c1-a27ca8cdd3e6)
- 13. Make a build again, and follow the usual build process to build for the target device
- 14. After deploying, you should see similar set up like the second screenshot picture.
-  
+2. Set up Unity environment for the VisionOS
+
+3. Import AgoraRTC-Plugin-VisionOS.unitypackage
+
+4. Open TestAgoraVP scene
+
+5. Fill in App ID and Channel Name.
+
+![input](https://github.com/user-attachments/assets/974967e2-094a-4fdf-b6a3-635225e42161)
+
+10. Build and Run the project on device
+
+
 ## License
+
+  
 
 The MIT License (MIT).

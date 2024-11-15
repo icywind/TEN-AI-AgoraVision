@@ -1,26 +1,30 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using System.Collections.Generic;
 using Agora.Rtc;
 using Agora.Rtc.Utils;
+using Agora.TEN.Client;
 
 namespace Agora_RTC_Plugin.API_Example
 {
     public class AgoraVPManager : MonoBehaviour
     {
         #region EDITOR INPUTS
-        [Header("_____________Basic Configuration_____________")]
-        [FormerlySerializedAs("APP_ID")]
-        [SerializeField]
+        //[Header("_____________Basic Configuration_____________")]
         protected string _appID = "";
 
-        [FormerlySerializedAs("TOKEN")]
-        [SerializeField]
         protected string _token = "";
 
-        [FormerlySerializedAs("CHANNEL_NAME")]
         [SerializeField]
         protected string _channelName = "";
+
+        [SerializeField]
+        internal TENConfigInput TENConfig;
+        [SerializeField]
+        internal IChatTextDisplay TextDisplay;
+        [SerializeField]
+        internal TENSessionManager TENSession;
+        [SerializeField]
+        internal SphereVisualizer Visualizer;
 
         [SerializeField]
         internal GameObject ViewContainerPrefab;
@@ -46,22 +50,35 @@ namespace Agora_RTC_Plugin.API_Example
         // Update is called once per frame
         private void Update()
         {
-            foreach(var ob in ViewObjects.Values) {
+            foreach (var ob in ViewObjects.Values)
+            {
                 ob.transform.LookAt(TargetObject.transform);
-	        }
+            }
         }
 
         private void OnDestroy()
         {
             Debug.Log("OnDestroy");
-            if (RtcEngine == null) return;  
+            TENSession.StopSession();
+
+            if (RtcEngine == null) return;
             RtcEngine.InitEventHandler(null);
             RtcEngine.LeaveChannel();
             RtcEngine.Dispose();
         }
 
+        private void LoadAssetData()
+        {
+            AppConfig.Shared.SetValue(TENConfig);
+            //if (_appIdInput == null) return;
+            _appID = AppConfig.Shared.AppId;
+            _token = AppConfig.Shared.RtcToken;
+            _channelName = AppConfig.Shared.Channel = UtilFunctions.GenRandomString("agora_", 5);
+        }
+
         private bool CheckAppId()
         {
+            LoadAssetData();
             Debug.Assert(_appID.Length > 10, $"Please fill in your appId in {gameObject.name}");
             Debug.Log("Running platform is " + Application.platform);
             return _appID.Length > 10;
@@ -95,12 +112,15 @@ namespace Agora_RTC_Plugin.API_Example
             {
                 RtcEngine.SetParameters("che.audio.restartWhenInterrupted", true);
             }
+
+            Visualizer?.Init(RtcEngine);
         }
 
         #region -- Button Events ---
 
-        public virtual void JoinChannel()
+        public virtual async void JoinChannel()
         {
+            _token = await TENSession.GetToken();
             RtcEngine.JoinChannel(_token, _channelName);
         }
 
@@ -138,11 +158,13 @@ namespace Agora_RTC_Plugin.API_Example
                                     connection.channelId, connection.localUid, elapsed));
                 Vector3 pos = new Vector3(-2.5f, 0, 3.28f);
                 CreateUserView(0, connection.channelId, pos);
+                _app.TENSession.StartSession(connection.localUid);
             }
 
             public override void OnUserJoined(RtcConnection connection, uint uid, int elapsed)
             {
                 Debug.Log(string.Format("OnUserJoined uid: ${0} elapsed: ${1}", uid, elapsed));
+                if (uid == _app.TENConfig.AgentUid) return;
                 var count = _app.transform.childCount;
                 Vector3 pos = new Vector3(count * 1.5f, 0, 3.28f);
                 CreateUserView(uid, connection.channelId, pos);
